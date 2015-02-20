@@ -26,6 +26,11 @@ class TranslationsFieldsType extends AbstractType
 
             $builder->add($fieldName, $fieldType, $fieldConfig);
         }
+
+        $builder->add('locale', 'hidden', array(
+            'required' => true,
+            'data'     => $options['locale'],
+        ));
     }
 
     /**
@@ -36,6 +41,7 @@ class TranslationsFieldsType extends AbstractType
     {
         $resolver->setDefaults(array(
             'fields' => array(),
+            'locale' => null,
         ));
     }
 

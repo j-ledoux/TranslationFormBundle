@@ -30,24 +30,31 @@ class TranslationsListener implements EventSubscriberInterface
     public function preSetData(FormEvent $event)
     {
         $form = $event->getForm();
-        
+
         $translatableClass = $form->getParent()->getConfig()->getDataClass();
         $translationClass = $this->getTranslationClass($translatableClass);
 
         $formOptions = $form->getConfig()->getOptions();
         $fieldsOptions = $this->translationForm->getFieldsOptions($translationClass, $formOptions);
 
-        foreach ($formOptions['locales'] as $locale) {            
+        foreach ($formOptions['locales'] as $index => $locale) {
             if (isset($fieldsOptions[$locale])) {
-                $form->add($locale, 'a2lix_translationsFields', array(
+                // $form->add($locale, 'a2lix_translationsFields', array(
+                //     'data_class' => $translationClass,
+                //     'fields' => $fieldsOptions[$locale],
+                //     'required' => in_array($locale, $formOptions['required_locales'])
+                // ));
+
+                $form->add($index, 'a2lix_translationsFields', array(
                     'data_class' => $translationClass,
-                    'fields' => $fieldsOptions[$locale],
-                    'required' => in_array($locale, $formOptions['required_locales'])
+                    'fields'     => $fieldsOptions[$locale],
+                    'required'   => in_array($locale, $formOptions['required_locales']),
+                    'locale'     => $locale,
                 ));
             }
         }
     }
-    
+
     /**
      *
      * @param \Symfony\Component\Form\FormEvent $event
@@ -56,13 +63,11 @@ class TranslationsListener implements EventSubscriberInterface
     {
         $data = $event->getData();
 
-        foreach ($data as $locale => $translation) {
+        foreach ($data as $translation) {
+
             // Remove useless Translation object
             if (!$translation) {
                 $data->removeElement($translation);
-                
-            } else {
-                $translation->setLocale($locale);
             }
         }
     }
@@ -74,7 +79,7 @@ class TranslationsListener implements EventSubscriberInterface
             FormEvents::SUBMIT => 'submit',
         );
     }
-    
+
     /**
      *
      * @param string $translatableClass
@@ -84,12 +89,12 @@ class TranslationsListener implements EventSubscriberInterface
         // Knp
         if (method_exists($translatableClass, "getTranslationEntityClass")) {
             return $translatableClass::getTranslationEntityClass();
-        
-        // Gedmo    
+
+        // Gedmo
         } elseif (method_exists($translatableClass, "getTranslationClass")) {
             return $translatableClass::getTranslationClass();
         }
-        
+
         return $translatableClass .'Translation';
     }
 }
